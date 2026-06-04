@@ -1,0 +1,144 @@
+{% extends 'base.html' %} 
+{% block content %}
+
+<div class="container mt-5">
+  <div class="row mb-5">
+    <div class="col-md-12">
+      <h1 class="text-center mb-4">
+        <i class="bi bi-egg-fried"></i> Find Your Favorite Recipes
+      </h1>
+
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <form method="GET" action="/">
+            <div class="input-group input-group-lg">
+              <input
+                type="text"
+                name="search"
+                class="form-control"
+                placeholder="Search for recipes (e.g., pizza, pasta, chicken)..."
+                value="{{ request.args.get('search', '') }}"
+                autocomplete="off"
+              />
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-search"></i> Search
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-warning alert-dismissible fade show mt-4 text-center" role="alert">
+      <i class="bi bi-exclamation-circle"></i> {{ error }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endif %}
+
+  {% if meals %}
+    <h3 class="mb-4">
+      <i class="bi bi-collection"></i> Found {{ meals|length }} Recipe(s)
+    </h3>
+
+    <div class="row">
+      {% for meal in meals %}
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm recipe-card">
+            <img
+              src="{{ meal.strMealThumb }}"
+              class="card-img-top"
+              alt="{{ meal.strMeal }}"
+              style="height: 250px; object-fit: cover;"
+            />
+
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title">{{ meal.strMeal }}</h5>
+
+              {% if meal.strCategory %}
+                <p class="card-text text-muted">
+                  <i class="bi bi-tag"></i> {{ meal.strCategory }}
+                </p>
+              {% endif %}
+
+              {% if meal.strArea %}
+                <p class="card-text text-muted">
+                  <i class="bi bi-geo-alt"></i> {{ meal.strArea }}
+                </p>
+              {% endif %}
+
+              <div class="mt-auto">
+                <a href="/recipe/{{ meal.idMeal }}" class="btn btn-success btn-sm w-100 mb-2">
+                  <i class="bi bi-eye"></i> View Recipe
+                </a>
+
+                {% if current_user.is_authenticated %}
+                  {% if meal.idMeal|string in user_favorite_ids %}
+                    <button class="btn btn-outline-danger btn-sm w-100 remove-favorite" data-meal-id="{{ meal.idMeal }}">
+                      <i class="bi bi-heart-fill"></i> Remove Favorite
+                    </button>
+                  {% else %}
+                    <button class="btn btn-outline-danger btn-sm w-100 add-favorite" data-meal-id="{{ meal.idMeal }}">
+                      <i class="bi bi-heart"></i> Add Favorite
+                    </button>
+                  {% endif %}
+                {% else %}
+                  <a href="/login" class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="bi bi-heart"></i> Add Favorite
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  {% elif not request.args.get('search') %}
+    <div class="alert alert-info mt-4 text-center">
+      <i class="bi bi-info-circle"></i> Search for recipes above or sign up to manage your favorites!
+    </div>
+
+  {% else %}
+    <div class="alert alert-warning mt-4 text-center">
+      <i class="bi bi-search"></i> No recipes found for "{{ request.args.get('search') }}". Try another search!
+    </div>
+  {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.add-favorite').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const mealId = this.dataset.mealId;
+    fetch(`/add-favorite/${mealId}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      });
+  });
+});
+
+document.querySelectorAll('.remove-favorite').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const mealId = this.dataset.mealId;
+    fetch(`/remove-favorite/${mealId}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      });
+  });
+});
+</script>
+
+{% endblock %}

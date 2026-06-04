@@ -1,0 +1,126 @@
+{% extends 'base.html' %} 
+{% block content %}
+
+<div class="container mt-5">
+  {% if meal %}
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <img
+          src="{{ meal.strMealThumb }}"
+          alt="{{ meal.strMeal }}"
+          class="img-fluid rounded shadow"
+        />
+      </div>
+
+      <div class="col-md-6">
+        <h1 class="mb-3">{{ meal.strMeal }}</h1>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p class="text-muted">
+              <strong><i class="bi bi-tag"></i> Category:</strong> {{ meal.strCategory }}
+            </p>
+          </div>
+          <div class="col-md-6">
+            <p class="text-muted">
+              <strong><i class="bi bi-geo-alt"></i> Area:</strong> {{ meal.strArea }}
+            </p>
+          </div>
+        </div>
+
+        {% if current_user.is_authenticated %}
+          {% if is_favorite %}
+            <button class="btn btn-danger remove-favorite" data-meal-id="{{ meal.idMeal }}">
+              <i class="bi bi-heart-fill"></i> Remove from Favorites
+            </button>
+          {% else %}
+            <button class="btn btn-outline-danger add-favorite" data-meal-id="{{ meal.idMeal }}">
+              <i class="bi bi-heart"></i> Add to Favorites
+            </button>
+          {% endif %}
+        {% else %}
+          <a href="/login" class="btn btn-outline-secondary">
+            <i class="bi bi-heart"></i> Add to Favorites
+          </a>
+        {% endif %}
+
+        <a href="/" class="btn btn-secondary ms-2">
+          <i class="bi bi-arrow-left"></i> Back
+        </a>
+      </div>
+    </div>
+
+    {% if meal.strIngredient1 or meal.strMeasure1 %}
+      <h3 class="mt-5 mb-3"><i class="bi bi-list-check"></i> Ingredients</h3>
+      <div class="row">
+        <div class="col-md-8">
+          <ul class="list-group">
+            {% for i in range(1, 21) %}
+              {% if meal["strIngredient" + i|string] %}
+                <li class="list-group-item">
+                  <strong>{{ meal["strIngredient" + i|string] }}</strong>
+                  - {{ meal["strMeasure" + i|string] }}
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if meal.strInstructions %}
+      <h3 class="mt-5 mb-3"><i class="bi bi-book"></i> Instructions</h3>
+      <div class="row">
+        <div class="col-md-8">
+          <p class="text-justify" style="line-height: 1.8;">{{ meal.strInstructions }}</p>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if meal.strYoutube %}
+      <h3 class="mt-5 mb-3"><i class="bi bi-play-circle"></i> Video Tutorial</h3>
+      <div class="row">
+        <div class="col-md-8">
+          <a href="{{ meal.strYoutube }}" target="_blank" class="btn btn-danger">
+            <i class="bi bi-youtube"></i> Watch on YouTube
+          </a>
+        </div>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="alert alert-danger text-center">
+      <i class="bi bi-exclamation-circle"></i> Recipe not found. <a href="/">Go back</a>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+document.querySelector('.add-favorite')?.addEventListener('click', function() {
+  const mealId = this.dataset.mealId;
+  fetch(`/add-favorite/${mealId}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert(data.message);
+      }
+    });
+});
+
+document.querySelector('.remove-favorite')?.addEventListener('click', function() {
+  const mealId = this.dataset.mealId;
+  fetch(`/remove-favorite/${mealId}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert(data.message);
+      }
+    });
+});
+</script>
+
+{% endblock %}
