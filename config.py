@@ -16,8 +16,8 @@ DB_DIR.mkdir(exist_ok=True)
 class Config:
     # Secret Key
     SECRET_KEY = os.getenv(
-        "3151191dc311ab61381eb7f50e6effcb1725879440342f762f3554b1872cc520",
-        "recipe-finder-secret-key-change-in-production"
+        "SECRET_KEY",
+        "3151191dc311ab61381eb7f50e6effcb1725879440342f762f3554b1872cc520"
     )
 
     # Database Configuration
